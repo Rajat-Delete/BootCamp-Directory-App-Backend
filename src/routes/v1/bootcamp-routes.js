@@ -1,33 +1,19 @@
 const express = require('express');
 
 const router = express.Router();
+const {BootcampController} = require('../../controllers');
+
 
 //this is typically reffering to /api/v1/bootcamps which is a GET request
-router.get('/',(request,response)=>{
-    response.status(200).json({
-        Message : 'Show all Bootcamps'
-    });
-});
+router.get('/',BootcampController.getbootcamps);
 
 //this is typically reffering to /api/v1/bootcamps which is a POST request
-router.post('/',(request,response)=>{
-    response.status(200).json({
-        Message : `post request to Bootcamp`
-    });
-});
+router.post('/',BootcampController.postbootcamps);
 
 //this is typically reffering to /api/v1/bootcamps which is a PUT request
-router.put('/:id',(request,response)=>{
-    response.status(200).json({
-        Message : `put request to Bootcamp: ${request.params.id}`
-    });
-});
+router.put('/:id',BootcampController.putbootcampsbyId);
 
 //this is typically reffering to /api/v1/bootcamps which is a DELETE request
-router.delete('/:id',(request,response)=>{
-    response.status(200).json({
-        Message : `delete request to Bootcamp: ${request.params.id}`
-    });
-});
+router.delete('/:id',BootcampController.deletebootcampbyId);
 
 module.exports = router;
