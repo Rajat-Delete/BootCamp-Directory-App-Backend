@@ -1,10 +1,15 @@
 const { StatusCodes } = require('http-status-codes');
- 
 
 
 function getbootcamps(request,response){
     return response.status(StatusCodes.OK).json({
         Message : 'Show all Bootcamps'
+    })
+}
+
+function getbootcampsbyId(request,response){
+    return response.status(StatusCodes.OK).json({
+        Message : `Get Request to Bootcamp Id : ${request.params.id}`
     })
 }
 
@@ -31,4 +36,5 @@ module.exports = {
     postbootcamps,
     putbootcampsbyId,
     deletebootcampbyId,
+    getbootcampsbyId,
 }
