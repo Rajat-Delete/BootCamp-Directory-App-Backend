@@ -11,9 +11,12 @@ connectDB();
 const approutes =  require('./src/routes');
 
 const app = express();
+//body parser that will parse the imcoming json request
+app.use(express.json());
 //added morgan to log the Incoming request
 app.use(morgan('dev'));
 app.use('/api',approutes);
+
 
 
 const server = app.listen(PORT , ()=>{
