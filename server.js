@@ -2,7 +2,6 @@ const express = require('express');
 const morgan = require('morgan');
 const connectDB = require('./src/config/dbconfig');
 const { ServerConfig } = require('./src/config');
-
 const PORT = ServerConfig.PORT || 5000;
 
 //connect the DB

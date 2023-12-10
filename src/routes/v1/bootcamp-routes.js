@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const {BootcampController} = require('../../controllers');
 
-
 //this is typically reffering to /api/v1/bootcamps which is a GET request
 router.get('/',BootcampController.getbootcamps);
 

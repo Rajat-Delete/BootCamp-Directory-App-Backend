@@ -1,57 +1,47 @@
-const { StatusCodes } = require('http-status-codes');
-const Bootcamp = require('../models/bootcamp');
+const {Bootcampservice} = require('../service');
+const {StatusCodes} = require('http-status-codes');
+const { SuccessResponse,ErrorResponse } = require('../utils/common');
+const AppError = require('../utils/error/app-error');
 
 async function getbootcamps(request,response){
     try{
-        const bootcamps = await Bootcamp.find();
-        return response.status(StatusCodes.OK).json({
-            Success : true,
-            Count : bootcamps.length,
-            Data : bootcamps,
-        });
+        const bootcamps = await Bootcampservice.getbootcamps();
+        SuccessResponse.data = bootcamps;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
-        return response.status(StatusCodes.BAD_REQUEST).json({
-            Success : false,
-            Error : error,
-        })
+        ErrorResponse.error = error;
+        return response.status(error.statusCode).json(ErrorResponse)
     }
 }
 
 async function getbootcampsbyId(request,response){
     try{
-        const bootcamp = await Bootcamp.findById(request.params.id);
+        const bootcamp = await Bootcampservice.getbootcampsbyId(request.params.id);
         if(!bootcamp){
-            return response.status(StatusCodes.BAD_REQUEST).json({
-                Success : false,
-                Data : 'No bootcamp for the Given Id',
-            })
+            throw new AppError(`Bootcamp not found with Id ${request.params.id}`,StatusCodes.NOT_FOUND)
         }
-
-        return response.status(StatusCodes.OK).json({
-            Success : true,
-            Data : bootcamp,
-        })
+        SuccessResponse.data = bootcamp;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
-        return response.status(StatusCodes.OK).json({
-            Success : false,
-            Error : error,
-        });
+        ErrorResponse.error = error;
+        return response.status(error.statusCode).json(ErrorResponse);
     }
 }
 
 async function postbootcamps(request,response){
     //although we have to write the creating logic into service layer but for now writing here
     try{
-        const bootcamp = await Bootcamp.create(request.body);
-        return response.status(StatusCodes.CREATED).json({
-            Success : true,
-            Data : bootcamp,
-       });
+        const bootcamp = await Bootcampservice.postbootcamps(request.body);
+        console.log('bootcamp posted',bootcamp);
+        if(!bootcamp){
+            console.log(bootcamp);
+            throw new AppError('Unable to create bootcamp',StatusCodes.BAD_REQUEST)
+        }
+        SuccessResponse.data= bootcamp;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
-        return response.status(StatusCodes.BAD_REQUEST).json({
-            Success : false,
-            Error : error,
-        })
+        ErrorResponse.error = error;
+        return response.status(error.statusCode).json(ErrorResponse);
     }
 }
 
@@ -59,50 +49,34 @@ async function putbootcampsbyId(request,response){
     try{
         //here new : true return the updated document instead of the original document
         //run validator : true validates the field getting updated
-        const bootcamp = await Bootcamp.findByIdAndUpdate(request.params.id , request.body , {
+        const bootcamp = await Bootcampservice.putbootcampsbyId(request.params.id, request.body, {
             new : true,
             runValidators : true,
-        })
-
+        });
+        console.log('bootcamp data: ',bootcamp);
         if(!bootcamp){
-            return response.status(StatusCodes.BAD_REQUEST).json({
-                Success : false,
-                Data : 'No bootcamp for the Given Id',
-            })
+            throw new AppError(`Unable to find Bootcamp with Id ${request.params.id}`,StatusCodes.BAD_REQUEST);
         }
-
-        return response.status(StatusCodes.OK).json({
-            Success : true,
-            Data : bootcamp,
-        })
+        SuccessResponse.data = bootcamp;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
-        return response.status(StatusCodes.BAD_REQUEST).json({
-            Success : false,
-            Error : error,
-        })
+        ErrorResponse.error = error;
+        return response.status(error.statusCode).json(ErrorResponse);
     }
 }
 
 async function deletebootcampbyId(request,response){
     try{
-        const bootcamp = await Bootcamp.findByIdAndDelete(request.params.id);
-
+        const bootcamp = await Bootcampservice.deletebootcampbyId(request.params.id);
         if(!bootcamp){
-            return response.status(StatusCodes.BAD_REQUEST).json({
-                Success : false,
-                Message : 'No BootCamp for the Given Id',
-            })
+            throw new AppError(`Unable to find BootCamp with Id ${request.params.id}`,StatusCodes.BAD_REQUEST);
         }
-        return response.status(StatusCodes.OK).json({
-            Success : true,
-            Data : {}
-        });
+        SuccessResponse.data = bootcamp;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
 
     }catch(error){
-        return response.status(StatusCodes.BAD_REQUEST).json({
-            Success : false,
-            Error : error,
-        })
+       ErrorResponse.error = error;
+       return response.status(error.statusCode).json(ErrorResponse);
     }
 }
 
