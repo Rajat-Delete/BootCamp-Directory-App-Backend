@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { boolean } = require('webidl-conversions');
+const slugify = require('slugify');
 
 const Bootcampschema = new mongoose.Schema({
     name : {
@@ -91,6 +92,12 @@ const Bootcampschema = new mongoose.Schema({
         default : Date.now(),
     }
 
+})
+
+//Adding code to update the Slug before db insert.
+Bootcampschema.pre('save',function(next){
+    this.slug = slugify(this.name , {lower : true});
+    next();
 })
 
 module.exports = mongoose.model('Bootcamp', Bootcampschema);

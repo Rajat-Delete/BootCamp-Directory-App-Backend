@@ -26,6 +26,10 @@ async function postbootcamps(data){
         const bootcamp = await Bootcamp.create(data);
         return bootcamp;
     }catch(error){
+        //added condition for duplicate key check
+        if(error.name === 'MongoServerError'){
+            throw new AppError(`Duplicate Key error in Field:  ${(Object.keys(error.keyValue))}`,StatusCodes.BAD_REQUEST)
+        }
         throw new AppError(error.message,StatusCodes.BAD_REQUEST);
     }
 }
@@ -35,7 +39,6 @@ async function putbootcampsbyId(id ,body, options){
         const bootcamp = await Bootcamp.findByIdAndUpdate(id , body , options);
         return bootcamp;
     }catch(error){
-        console.log(error);
         throw new AppError(error.message ,StatusCodes.BAD_REQUEST);
     }
 }
