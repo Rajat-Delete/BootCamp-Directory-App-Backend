@@ -5,7 +5,8 @@ const AppError = require('../utils/error/app-error');
 
 async function getbootcamps(request,response){
     try{
-        const bootcamps = await Bootcampservice.getbootcamps();
+        //console.log('request',request.query);
+        const bootcamps = await Bootcampservice.getbootcamps(request.query);
         SuccessResponse.data = bootcamps;
         return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
@@ -80,10 +81,23 @@ async function deletebootcampbyId(request,response){
     }
 }
 
+//so the type of request coming to this api will be /api/v1/botocamps/radius/:zipcode/:distance
+async function getbootcampwithinRadius(request,response){
+    try{
+        const {zipcode , distance} = request.params;
+        const bootcamps = await Bootcampservice.getbootcampwithinRadius({zipcode , distance});
+        SuccessResponse.data = bootcamps;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
+    }catch(error){
+        console.log('Error in getbootcampswithin radius',error);
+    }
+}
+
 module.exports = {
     getbootcamps,
     postbootcamps,
     putbootcampsbyId,
     deletebootcampbyId,
     getbootcampsbyId,
+    getbootcampwithinRadius,
 }

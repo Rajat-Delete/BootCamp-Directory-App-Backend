@@ -1,13 +1,43 @@
 const { StatusCodes } = require('http-status-codes');
 const Bootcamp = require('../models/bootcamp');
 const AppError = require('../utils/error/app-error');
+const {Geocoder} = require('../utils/common');
 
 
-async function getbootcamps(request,response){
+async function getbootcamps(query){
     try{
-        const bootcamps = await Bootcamp.find();
-        return bootcamps;
+        console.log('query in getbootcamps service',query);
+
+        //copy req query
+        const reqQuery = { ...query };
+
+        //Fields to exclude
+        const removeFields = ['select'];
+
+        //iterates over reqQuery and removes the fields
+        removeFields.forEach(param => delete reqQuery[param]);
+
+        console.log(reqQuery);
+
+        //regex to replace all arithmetic operator with $ infront of them
+        let queryStr = JSON.stringify(query);
+        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/, match => `$${match}`);
+        console.log('querystr',queryStr);
+        query = JSON.parse(queryStr);
+
+
+        //select fields from bootcamps
+        if(query.select){
+            const fields = query.select.split(',').join(' ');
+            const bootcamps = await Bootcamp.find(reqQuery).select(fields);
+            return bootcamps;
+        }else{
+            const bootcamps = await Bootcamp.find(query);
+            return bootcamps;
+
+        }
     }catch(error){
+        console.log(error);
         throw new AppError('Something went wrong while fetching All bootcamps',StatusCodes.INTERNAL_SERVER_ERROR);
     }
 }
@@ -52,10 +82,35 @@ async function deletebootcampbyId(data){
     }
 }
 
+
+async function getbootcampwithinRadius(data){
+    try {
+        //Getting langitude / Longitude from geocoder
+        const loc = await Geocoder.geocode(data.zipcode);
+        const latitude = loc[0].latitude;
+        const longitude = loc[0].longitude;
+
+
+        //calculate radius 
+        //divide distance by radius of earth
+        //Earth Radius = 3963mi/6378km
+        const radius = data.distance/3963;
+
+        const bootcamps = await Bootcamp.find({
+            location :{ $geoWithin : { $centerSphere : [[ longitude , latitude ], radius]}}
+        });
+
+        return bootcamps;
+    } catch (error) {
+        console.log('error in getbootcamp within radius' , error);
+    }
+}
+
 module.exports = {
     getbootcamps,
     postbootcamps,
     putbootcampsbyId,
     deletebootcampbyId,
     getbootcampsbyId,
+    getbootcampwithinRadius,
 }
