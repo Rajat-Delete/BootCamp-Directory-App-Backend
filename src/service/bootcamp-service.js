@@ -7,12 +7,12 @@ const {Geocoder} = require('../utils/common');
 async function getbootcamps(query){
     try{
         console.log('query in getbootcamps service',query);
-
+        let newQuery;
         //copy req query
         const reqQuery = { ...query };
 
         //Fields to exclude
-        const removeFields = ['select'];
+        const removeFields = ['select','sort','page','limit'];
 
         //iterates over reqQuery and removes the fields
         removeFields.forEach(param => delete reqQuery[param]);
@@ -20,22 +20,56 @@ async function getbootcamps(query){
         console.log(reqQuery);
 
         //regex to replace all arithmetic operator with $ infront of them
-        let queryStr = JSON.stringify(query);
+        let queryStr = JSON.stringify(reqQuery);
         queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/, match => `$${match}`);
-        console.log('querystr',queryStr);
-        query = JSON.parse(queryStr);
+        console.log('querystr',JSON.parse(queryStr));
 
+        newQuery = Bootcamp.find(JSON.parse(queryStr));
 
         //select fields from bootcamps
         if(query.select){
             const fields = query.select.split(',').join(' ');
-            const bootcamps = await Bootcamp.find(reqQuery).select(fields);
-            return bootcamps;
-        }else{
-            const bootcamps = await Bootcamp.find(query);
-            return bootcamps;
-
+            newQuery = newQuery.select(fields);
         }
+
+        //sort
+        if(query.sort){
+            const sortBy = query.sort.split(',').join(' ');
+            newQuery.sort(sortBy);
+        }else{
+            newQuery.sort('-createdAt');
+        }
+
+        //pagination
+        const limit = parseInt(query.limit , 10) || 1;
+        const page = parseInt(query.page , 10) || 1;
+        const startIndex = (page - 1)*limit;
+        const endIndex = page * limit;
+        const total = await Bootcamp.countDocuments();
+
+        newQuery.skip(startIndex).limit(limit);
+
+        //pagination results
+        const pagination = {};
+
+        if(endIndex < total){
+            pagination.next = {
+                page : page +1,
+                limit: limit
+            }
+        }
+
+        if(startIndex > 0){
+            pagination.prev = {
+                page : page -1,
+                limit : limit
+            }
+        }
+
+        const bootcamps = await newQuery;
+        bootcamps.pagination = pagination;
+        return bootcamps;
+
     }catch(error){
         console.log(error);
         throw new AppError('Something went wrong while fetching All bootcamps',StatusCodes.INTERNAL_SERVER_ERROR);
