@@ -32,7 +32,7 @@ const importData = async ()=>{
 const destroyData = async ()=>{
     try{
         await Course.deleteMany();
-        console.log('data desctroyed successfully');
+        console.log('data destroyed successfully');
         process.exit();
     }catch(error){
         console.log('error while destroying data in DB',error);

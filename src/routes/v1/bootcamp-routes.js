@@ -1,6 +1,13 @@
 const express = require('express');
 
 const router = express.Router();
+
+//Including CourseRouter 
+const courserouter = require('./course-routes');
+router.use('/:bootcampId/courses', courserouter);
+//If any calls comes for /api/v1/Bootcamp/:bootcampId/courses then we will route it to Courses router
+
+
 const {BootcampController} = require('../../controllers');
 
 //this is typically reffering to /api/v1/bootcamps which is a GET request
