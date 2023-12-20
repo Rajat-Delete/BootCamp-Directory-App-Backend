@@ -5,6 +5,7 @@ const AppError = require('../utils/error/app-error');
 async function getCourses(request){
     let query;
     try{
+        //the initial If statement is finding the course related to a specific bootcamp
         if(request.params.bootcampId){
             query = Course.find({bootcamp : request.params.bootcampId})
         }else{

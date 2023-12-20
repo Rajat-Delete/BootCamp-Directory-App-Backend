@@ -1,5 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const Bootcamp = require('../models/bootcamp');
+const Course = require('../models/course');
 const AppError = require('../utils/error/app-error');
 const {Geocoder} = require('../utils/common');
 
@@ -24,7 +25,10 @@ async function getbootcamps(query){
         queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/, match => `$${match}`);
         console.log('querystr',JSON.parse(queryStr));
 
-        newQuery = Bootcamp.find(JSON.parse(queryStr));
+        newQuery = Bootcamp.find(JSON.parse(queryStr)).populate({
+         path: 'courses',
+         select : 'title description',
+        });
 
         //select fields from bootcamps
         if(query.select){
@@ -109,9 +113,21 @@ async function putbootcampsbyId(id ,body, options){
 
 async function deletebootcampbyId(data){
     try{
-        const bootcamp = await Bootcamp.findByIdAndDelete(data);
+        const bootcamp = await Bootcamp.findById(data);
+        if(!bootcamp){
+            throw new AppError(`Unable to find Bootcamp with Id ${data}`,StatusCodes.NOT_FOUND);
+        }
+
+        //so if we do find by Id and delete then the delete cascade for courses is not going to trigger 
+        //so we will use remove here explicitly
+
+        // Since Bootcamp.remove() prehook was not working we explicitly deleted the data
+        //fetching all the courses specified for this bootcamp
+        await Course.deleteMany({bootcamp : data});
+        await bootcamp.deleteOne({_id : data});
         return bootcamp;
     }catch(error){
+        console.log('error',error);
         throw new AppError(error.message,StatusCodes.BAD_REQUEST);
     }
 }

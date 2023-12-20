@@ -7,6 +7,9 @@ async function getbootcamps(request,response){
     try{
         //console.log('request',request.query);
         const bootcamps = await Bootcampservice.getbootcamps(request.query);
+        if(bootcamps.length > 0){
+            SuccessResponse.count = bootcamps.length;
+        }
         SuccessResponse.data = bootcamps;
         SuccessResponse.pagination = bootcamps.pagination;
         return response.status(StatusCodes.OK).json(SuccessResponse);

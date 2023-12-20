@@ -92,6 +92,9 @@ const Bootcampschema = new mongoose.Schema({
         default : Date.now(),
     }
 
+},{
+    toJSON : {virtuals : true},
+    toObject : {virtuals : true}
 })
 
 //Adding code to update the Slug before db insert.
@@ -121,5 +124,26 @@ Bootcampschema.pre('save',async function(next){
     this.address = undefined;
     next();
 })
+
+//added cascade delete for bootcamps
+//so for every bootcamp remove we have to remove corresponding courses as well
+Bootcampschema.post('remove',async function (next){
+    console.log(`Courses being removed from Bootcamp ${this._id}`);
+    await this.model('Course').deleteMany({bootcamp : this._id});
+    next();
+})
+
+
+/*
+When you `populate()` the `Course` virtual, Mongoose will find the
+first document in the Course model whose `_id` matches this document's
+`bootcamp` property.
+*/
+Bootcampschema.virtual('courses',{
+    ref : 'Course',
+    localField : '_id',
+    foreignField : 'bootcamp',
+    justOne : false,
+});
 
 module.exports = mongoose.model('Bootcamp', Bootcampschema);
