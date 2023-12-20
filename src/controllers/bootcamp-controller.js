@@ -94,6 +94,8 @@ async function getbootcampwithinRadius(request,response){
         return response.status(StatusCodes.OK).json(SuccessResponse);
     }catch(error){
         console.log('Error in getbootcampswithin radius',error);
+        ErrorResponse.error = error;
+       return response.status(error.statusCode).json(ErrorResponse);
     }
 }
 
