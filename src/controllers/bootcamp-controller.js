@@ -99,6 +99,19 @@ async function getbootcampwithinRadius(request,response){
     }
 }
 
+//so thge type of request coming to this api will be /api/v1/bootcamp/:id/photo
+async function photoUpload(request,response){
+    try {
+        const fileuploadstatus = await Bootcampservice.photoUpload(request);
+        console.log('file upload status',fileuploadstatus);
+        SuccessResponse.data = fileuploadstatus;
+        return response.status(StatusCodes.OK).json(SuccessResponse);
+    } catch (error) {
+        ErrorResponse.error = error;
+        return response.status(error.statusCode).json(ErrorResponse);
+    }
+}
+
 module.exports = {
     getbootcamps,
     postbootcamps,
@@ -106,4 +119,5 @@ module.exports = {
     deletebootcampbyId,
     getbootcampsbyId,
     getbootcampwithinRadius,
+    photoUpload,
 }

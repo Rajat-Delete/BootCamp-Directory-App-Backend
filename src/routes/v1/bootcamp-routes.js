@@ -28,4 +28,7 @@ router.put('/:id',BootcampController.putbootcampsbyId);
 //this is typically reffering to /api/v1/bootcamps which is a DELETE request
 router.delete('/:id',BootcampController.deletebootcampbyId);
 
+//this is typically reffering to /api/v1/bootcamp/:id/photodata
+router.put('/:id/photo',BootcampController.photoUpload);
+
 module.exports = router;

@@ -3,6 +3,7 @@ const Bootcamp = require('../models/bootcamp');
 const Course = require('../models/course');
 const AppError = require('../utils/error/app-error');
 const {Geocoder} = require('../utils/common');
+const path = require('path');
 
 
 async function getbootcamps(query){
@@ -156,6 +157,61 @@ async function getbootcampwithinRadius(data){
     }
 }
 
+async function photoUpload(data){
+    try{
+        console.log('bootcampId',data.params.id);
+        console.log('image data',data.files);
+
+        const bootcamp = await Bootcamp.findById(data.params.id);
+
+        //checking if the bootcamp exists or not
+        if(!bootcamp){
+            throw new AppError(`Unable to find bootcamp with Id ${data.params.id}`,StatusCodes.NOT_FOUND);
+        }
+
+        //checking if some file is uploaded or not from frontend
+        if(!data.files){
+            throw new AppError('Please Upload a File',StatusCodes.BAD_REQUEST);
+        }
+
+        //checking if the file uploaded is a valid Image type
+        if(!data.files.File.mimetype.startsWith('image')){
+            throw new AppError('Please upload a valid ImageType for the bootcamp',StatusCodes.BAD_REQUEST);
+        }
+
+        //checking file size for the image uploaded
+        if(data.files.File.size > process.env.FILE_UPLOAD_SIZE){
+            throw new AppError(`Please uplaod a file less than ${process.env.FILE_UPLOAD_SIZE}`,StatusCodes.BAD_REQUEST);
+        }
+
+        //creating custom filename so that it doesnot conflicts with other images at out storage
+        //so we going to keep it photo_bootcampId as name
+
+        const filename = `photo_${data.params.id}${path.parse(data.files.File.name).ext}`;
+        console.log('filename',filename);
+        data.files.File.name = filename;
+
+        //Now we have to think about the upload of the Image using the mv function available which moves our file/image to directory
+        const uploadPath =path.join( __dirname,'..','public','uploads');
+        console.log(uploadPath);
+        //require('../public/uploads')
+
+        data.files.File.mv(`${uploadPath}/${filename}`, async error =>{
+            if(error){
+                console.log(error);
+                throw new AppError(error.message , error.statusCode);
+            }
+
+            //Now once file upload is completed , we have to update the bootcamp with the Image name
+            await Bootcamp.findByIdAndUpdate(data.params.id , {photo : filename});
+        });
+        return 'File Uploaded SuccessFully';
+
+    }catch(error){
+        throw new AppError(error.message , error.statusCode);
+    }
+}
+
 module.exports = {
     getbootcamps,
     postbootcamps,
@@ -163,4 +219,5 @@ module.exports = {
     deletebootcampbyId,
     getbootcampsbyId,
     getbootcampwithinRadius,
+    photoUpload,
 }

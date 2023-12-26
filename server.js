@@ -2,6 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 const connectDB = require('./src/config/dbconfig');
 const { ServerConfig } = require('./src/config');
+const fileupload = require('express-fileupload');
 const PORT = ServerConfig.PORT || 5000;
 
 //connect the DB
@@ -14,6 +15,10 @@ const app = express();
 app.use(express.json());
 //added morgan to log the Incoming request
 app.use(morgan('dev'));
+
+//using the file upload 
+app.use(fileupload());
+
 app.use('/api',approutes);
 
 
